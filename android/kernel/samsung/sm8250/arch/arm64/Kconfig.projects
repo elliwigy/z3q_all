@@ -1,0 +1,32 @@
+config SEC_X1Q_PROJECT
+	depends on ARCH_KONA
+	select SLUB_DEBUG if SEC_FACTORY
+	select SLUB_DEBUG_ON if SEC_FACTORY
+	default n
+	bool "Samsung X1Q Project"
+	help
+	  Support for Samsung X1Q Project
+
+config SEC_Y2Q_PROJECT
+	depends on ARCH_KONA
+	select SLUB_DEBUG if SEC_FACTORY
+	select SLUB_DEBUG_ON if SEC_FACTORY
+	default n
+	bool "Samsung Y2Q Project"
+	help
+	  Support for Samsung Y2Q Project
+
+config SEC_Z3Q_PROJECT
+	depends on ARCH_KONA
+	select SLUB_DEBUG if SEC_FACTORY
+	select SLUB_DEBUG_ON if SEC_FACTORY
+	default n
+	bool "Samsung Z3Q Project"
+	help
+	  Support for Samsung Z3Q Project
+
+menu "Samsung X/Y/Z"
+depends on SEC_X1Q_PROJECT || SEC_Y2Q_PROJECT || SEC_Z3Q_PROJECT
+source "arch/arm64/Kconfig.xyz
+endmenu
+

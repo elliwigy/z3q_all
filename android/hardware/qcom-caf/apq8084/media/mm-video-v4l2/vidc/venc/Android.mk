@@ -1,0 +1,199 @@
+ifneq ($(BUILD_TINY_ANDROID),true)
+
+ROOT_DIR := $(call my-dir)
+OMX_VIDEO_PATH := $(ROOT_DIR)/../..
+
+
+include $(CLEAR_VARS)
+LOCAL_PATH:= $(ROOT_DIR)
+
+# ---------------------------------------------------------------------------------
+# 				Common definitons
+# ---------------------------------------------------------------------------------
+
+libmm-venc-def := -g -O3 -Dlrintf=_ffix_r
+libmm-venc-def += -D__align=__alignx
+libmm-venc-def += -D__alignx\(x\)=__attribute__\(\(__aligned__\(x\)\)\)
+libmm-venc-def += -DT_ARM
+libmm-venc-def += -Dinline=__inline
+libmm-venc-def += -D_ANDROID_
+libmm-venc-def += -UENABLE_DEBUG_LOW
+libmm-venc-def += -UENABLE_DEBUG_HIGH
+libmm-venc-def += -DENABLE_DEBUG_ERROR
+libmm-venc-def += -UINPUT_BUFFER_LOG
+libmm-venc-def += -UOUTPUT_BUFFER_LOG
+libmm-venc-def += -USINGLE_ENCODER_INSTANCE
+ifeq ($(TARGET_BOARD_PLATFORM),msm8660)
+libmm-venc-def += -DMAX_RES_1080P
+libmm-venc-def += -UENABLE_GET_SYNTAX_HDR
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),msm8960)
+libmm-venc-def += -DMAX_RES_1080P
+libmm-venc-def += -DMAX_RES_1080P_EBI
+libmm-venc-def += -UENABLE_GET_SYNTAX_HDR
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),msm8974)
+libmm-venc-def += -DMAX_RES_1080P
+libmm-venc-def += -DMAX_RES_1080P_EBI
+libOmxVdec-def += -DPROCESS_EXTRADATA_IN_OUTPUT_PORT
+libmm-venc-def += -D_MSM8974_
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),msm7627a)
+libmm-venc-def += -DMAX_RES_720P
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),msm7630_surf)
+libmm-venc-def += -DMAX_RES_720P
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),msm8610)
+libmm-venc-def += -DMAX_RES_720P
+libmm-venc-def += -D_MSM8974_
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),msm8226)
+libmm-venc-def += -DMAX_RES_1080P
+libmm-venc-def += -D_MSM8974_
+libmm-venc-def += -D_MSM8226_
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),apq8084)
+libmm-venc-def += -DMAX_RES_1080P
+libmm-venc-def += -DMAX_RES_1080P_EBI
+libOmxVdec-def += -DPROCESS_EXTRADATA_IN_OUTPUT_PORT
+libmm-venc-def += -D_MSM8974_
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),mpq8092)
+libmm-venc-def += -DMAX_RES_1080P
+libmm-venc-def += -DMAX_RES_1080P_EBI
+libOmxVdec-def += -DPROCESS_EXTRADATA_IN_OUTPUT_PORT
+libmm-venc-def += -D_MSM8974_
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),msm_bronze)
+libmm-venc-def += -DMAX_RES_1080P
+libmm-venc-def += -DMAX_RES_1080P_EBI
+libOmxVdec-def += -DPROCESS_EXTRADATA_IN_OUTPUT_PORT
+libmm-venc-def += -D_MSM8974_
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),msm8916)
+libmm-venc-def += -DMAX_RES_1080P
+libmm-venc-def += -DMAX_RES_1080P_EBI
+libOmxVdec-def += -DPROCESS_EXTRADATA_IN_OUTPUT_PORT
+libmm-venc-def += -D_MSM8974_
+endif
+
+ifeq ($(TARGET_USES_ION),true)
+libmm-venc-def += -DUSE_ION
+endif
+
+ifeq ($(TARGET_USES_MEDIA_EXTENSIONS),true)
+libmm-venc-def += -DUSE_NATIVE_HANDLE_SOURCE
+endif
+
+libmm-venc-def += -D_ANDROID_ICS_
+# ---------------------------------------------------------------------------------
+# 			Make the Shared library (libOmxVenc)
+# ---------------------------------------------------------------------------------
+
+include $(CLEAR_VARS)
+
+libmm-venc-inc      += $(LOCAL_PATH)/inc
+libmm-venc-inc      += $(OMX_VIDEO_PATH)/vidc/common/inc
+libmm-venc-inc      += $(call project-path-for,qcom-media)/mm-core/inc
+libmm-venc-inc      += $(call project-path-for,qcom-media)/libstagefrighthw
+libmm-venc-inc      += $(call project-path-for,qcom-display)/libgralloc
+libmm-venc-inc      += frameworks/native/include/media/hardware
+libmm-venc-inc      += frameworks/native/include/media/openmax
+libmm-venc-inc      += frameworks/native/libs/nativewindow/include/
+libmm-venc-inc      += frameworks/native/libs/arect/include/
+libmm-venc-inc      += frameworks/native/libs/nativebase/include
+libmm-venc-inc      += $(call project-path-for,qcom-media)/libc2dcolorconvert
+libmm-venc-inc      += $(call project-path-for,qcom-display)/libcopybit
+libmm-venc-inc      += frameworks/av/include/media/stagefright
+libmm-venc-inc      += $(TARGET_OUT_HEADERS)/qcom/display/
+
+LOCAL_HEADER_LIBRARIES := \
+        generated_kernel_headers \
+        media_plugin_headers
+
+LOCAL_MODULE                    := libOmxVenc
+LOCAL_MODULE_TAGS               := optional
+LOCAL_VENDOR_MODULE             := true
+LOCAL_CFLAGS                    := $(libmm-venc-def)
+LOCAL_CFLAGS                    += -Wno-error
+LOCAL_C_INCLUDES                := $(libmm-venc-inc)
+
+LOCAL_PRELINK_MODULE      := false
+LOCAL_SHARED_LIBRARIES    := liblog libutils libhardware libbinder libcutils \
+                             libc2dcolorconvert libdl
+
+LOCAL_SRC_FILES   := src/omx_video_base.cpp
+LOCAL_SRC_FILES   += src/omx_video_encoder.cpp
+ifneq (,$(filter msm8974 msm8610 msm8226 apq8084 mpq8092 msm_bronze msm8916,$(TARGET_BOARD_PLATFORM)))
+LOCAL_SRC_FILES   += src/video_encoder_device_v4l2.cpp
+else
+LOCAL_SRC_FILES   += src/video_encoder_device.cpp
+endif
+
+LOCAL_SRC_FILES   += ../common/src/extra_data_handler.cpp
+
+include $(BUILD_SHARED_LIBRARY)
+
+# -----------------------------------------------------------------------------
+#  #                       Make the apps-test (mm-venc-omx-test720p)
+# -----------------------------------------------------------------------------
+
+include $(CLEAR_VARS)
+
+mm-venc-test720p-inc            := $(TARGET_OUT_HEADERS)/mm-core
+mm-venc-test720p-inc            += $(LOCAL_PATH)/inc
+mm-venc-test720p-inc            += $(OMX_VIDEO_PATH)/vidc/common/inc
+mm-venc-test720p-inc            += $(call project-path-for,qcom-media)/mm-core/inc
+mm-venc-test720p-inc            += $(call project-path-for,qcom-display)/libgralloc
+
+LOCAL_HEADER_LIBRARIES := \
+        generated_kernel_headers \
+        media_plugin_headers
+
+LOCAL_MODULE                    := mm-venc-omx-test720p
+LOCAL_MODULE_TAGS               := optional
+LOCAL_VENDOR_MODULE             := true
+LOCAL_CFLAGS                    := $(libmm-venc-def)
+LOCAL_C_INCLUDES                := $(mm-venc-test720p-inc)
+LOCAL_PRELINK_MODULE            := false
+LOCAL_SHARED_LIBRARIES          := libmm-omxcore libOmxVenc libbinder liblog
+
+LOCAL_SRC_FILES                 := test/venc_test.cpp
+LOCAL_SRC_FILES                 += test/camera_test.cpp
+LOCAL_SRC_FILES                 += test/venc_util.c
+LOCAL_SRC_FILES                 += test/fb_test.c
+
+include $(BUILD_EXECUTABLE)
+
+# -----------------------------------------------------------------------------
+# 			Make the apps-test (mm-video-driver-test)
+# -----------------------------------------------------------------------------
+
+include $(CLEAR_VARS)
+
+venc-test-inc                   += $(LOCAL_PATH)/inc
+venc-test-inc                   += $(call project-path-for,qcom-display)/libgralloc
+
+LOCAL_HEADER_LIBRARIES := \
+        generated_kernel_headers \
+        media_plugin_headers
+
+LOCAL_MODULE                    := mm-video-encdrv-test
+LOCAL_MODULE_TAGS               := optional
+LOCAL_VENDOR_MODULE             := true
+LOCAL_C_INCLUDES                := $(venc-test-inc)
+LOCAL_C_INCLUDES                += $(call project-path-for,qcom-media)/mm-core/inc
+LOCAL_PRELINK_MODULE            := false
+
+LOCAL_SRC_FILES                 := test/video_encoder_test.c
+LOCAL_SRC_FILES                 += test/queue.c
+
+include $(BUILD_EXECUTABLE)
+
+endif #BUILD_TINY_ANDROID
+
+# ---------------------------------------------------------------------------------
+# 					END
+# ---------------------------------------------------------------------------------
+
